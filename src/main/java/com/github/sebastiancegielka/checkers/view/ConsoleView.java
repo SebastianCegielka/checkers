@@ -1,15 +1,12 @@
 package com.github.sebastiancegielka.checkers.view;
 
 import com.github.sebastiancegielka.checkers.controller.GameController;
-import com.github.sebastiancegielka.checkers.model.Board;
 import com.github.sebastiancegielka.checkers.model.Color;
 import com.github.sebastiancegielka.checkers.model.Move;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 import org.beryx.textio.TextTerminal;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
 
 public class ConsoleView {
     private TextIO textIO = TextIoFactory.getTextIO();
@@ -62,7 +59,7 @@ public class ConsoleView {
     }
 
     public void run(){
-        controller.test();
+        controller.gameInit();
         printBoard();
         while(true){
             controller.move(getMove());

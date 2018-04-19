@@ -7,6 +7,9 @@ public class Move {
     private int columnEnd;
     private Color pawn;
 
+    public Move() {
+    }
+
     private Move(int rowStart, int columnStart, int rowEnd, int columnEnd, Color pawn) {
         this.rowStart = rowStart;
         this.columnStart = columnStart;
@@ -15,19 +18,19 @@ public class Move {
         this.pawn = pawn;
     }
 
-    public int getRowStart() {
+    public int getStartingRow() {
         return rowStart;
     }
 
-    public int getColumnStart() {
+    public int getStartingColumn() {
         return columnStart;
     }
 
-    public int getRowEnd() {
+    public int getTargetRow() {
         return rowEnd;
     }
 
-    public int getColumnEnd() {
+    public int getTargetColumn() {
         return columnEnd;
     }
 

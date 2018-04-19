@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GameController {
+    private final Color EMPTY = Color.o;
     private Board gameBoard = new Board();
 
     public Color[][] getBoardToPrint() {
@@ -24,44 +25,51 @@ public class GameController {
     }
 
     public void move(Move move) {
+        
         if(move.getPawn().equals(Color.Wk) || move.getPawn().equals(Color.Rk)){
             kingsMove(move);
         } else if (isPossibleToMove(move)) {
-            gameBoard.setField(move.getRowStart(), move.getColumnStart(), Color.o);
-            gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), move.getPawn());
+            gameBoard.setField(move.getStartingRow(), move.getStartingColumn(), EMPTY);
+            gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), move.getPawn());
             becomingAKing(move);
         } else if (isPossibleToCapture(move)) {
-            gameBoard.setField(move.getRowStart(), move.getColumnStart(), Color.o);
-            gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), move.getPawn());
-            int x = (move.getRowStart() + move.getRowEnd()) /2;
-            int y = (move.getColumnStart() + move.getColumnEnd()) /2;
-            gameBoard.setField(x, y, Color.o);
+            gameBoard.setField(move.getStartingRow(), move.getStartingColumn(), EMPTY);
+            gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), move.getPawn());
+            int x = (move.getStartingRow() + move.getTargetRow()) /2;
+            int y = (move.getStartingColumn() + move.getTargetColumn()) /2;
+            gameBoard.setField(x, y, EMPTY);
             becomingAKing(move);
         }
     }
 
     private boolean isPossibleToMove(Move move) {
-        if (gameBoard.getField(move.getRowEnd(), move.getColumnEnd()).equals(Color.o) &&
-                gameBoard.getField(move.getRowStart(), move.getColumnStart()).equals(move.getPawn())) {
+        if (isThereAPawnInStartingField_isTargetFieldEmpty(move)) {
             if (move.getPawn().equals(Color.R)) {
-                return move.getRowStart() == (move.getRowEnd() + 1) &&
-                        (move.getColumnStart() == (move.getColumnEnd() - 1) ||
-                                move.getColumnStart() == (move.getColumnEnd() + 1));
+                return isMoveDiagonalUpLeftOrRight(move);
             }
             if (move.getPawn().equals(Color.W)) {
-                return move.getRowStart() == (move.getRowEnd() - 1) &&
-                        (move.getColumnStart() == (move.getColumnEnd() - 1) ||
-                                move.getColumnStart() == (move.getColumnEnd() + 1));
+                return isMoveDiagonalDownLeftOrRight(move);
             }
         }
         return false;
     }
 
+    private boolean isMoveDiagonalDownLeftOrRight(Move move) {
+        return move.getStartingRow() == (move.getTargetRow() - 1) &&
+                ((move.getStartingColumn() == move.getTargetColumn() - 1) ||
+                        move.getStartingColumn() == (move.getTargetColumn() + 1));
+    }
+
+    private boolean isMoveDiagonalUpLeftOrRight(Move move) {
+        return move.getStartingRow() == (move.getTargetRow() + 1) &&
+                (move.getStartingColumn() == (move.getTargetColumn() - 1) ||
+                        move.getStartingColumn() == (move.getTargetColumn() + 1));
+    }
+
     private boolean isPossibleToCapture(Move move) {
-        if (gameBoard.getField(move.getRowEnd(), move.getColumnEnd()).equals(Color.o) &&
-                gameBoard.getField(move.getRowStart(), move.getColumnStart()).equals(move.getPawn())) {
-            int x = (move.getRowStart() + move.getRowEnd()) /2;
-            int y = (move.getColumnStart() + move.getColumnEnd()) /2;
+        if (isThereAPawnInStartingField_isTargetFieldEmpty(move)) {
+            int x = (move.getStartingRow() + move.getTargetRow()) /2;
+            int y = (move.getStartingColumn() + move.getTargetColumn()) /2;
             if (move.getPawn().equals(Color.R)) {
                 return gameBoard.getField(x, y).equals(Color.W);
             }
@@ -72,50 +80,63 @@ public class GameController {
         return false;
     }
 
+    private boolean isThereAPawnInStartingField_isTargetFieldEmpty(Move move) {
+        return gameBoard.getField(move.getTargetRow(), move.getTargetColumn()).equals(EMPTY) &&
+                gameBoard.getField(move.getStartingRow(), move.getStartingColumn()).equals(move.getPawn());
+    }
+
     private void becomingAKing(Move move){
-        if(move.getPawn().equals(Color.R) && move.getRowEnd() == 0){
-            gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), Color.Rk);
+        if(move.getPawn().equals(Color.R) && move.getTargetRow() == 0){
+            gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), Color.Rk);
         }
-        if(move.getPawn().equals(Color.W) && move.getRowEnd() == 7){
-            gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), Color.Wk);
+        if(move.getPawn().equals(Color.W) && move.getTargetRow() == 7){
+            gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), Color.Wk);
         }
     }
 
     private void kingsMove(Move move){
         List<Color> royalMove = new ArrayList<>();
-        if(move.getPawn().equals(Color.Wk) || move.getPawn().equals(Color.Rk) &&
-                gameBoard.getField(move.getRowEnd(), move.getColumnEnd()).equals(Color.o) &&
-                Math.abs(move.getRowStart()-move.getRowEnd()) == Math.abs(move.getColumnStart()-move.getColumnEnd())){
-            if(move.getRowEnd() < move.getRowStart()){
-                int moveSize = move.getRowStart() - move.getRowEnd();
-                if (move.getColumnEnd() < move.getColumnStart()){
+        boolean moveUp = move.getTargetRow() < move.getStartingRow();
+        boolean moveLeft = move.getTargetColumn() < move.getStartingColumn();
+        boolean moveRight = move.getTargetColumn() > move.getStartingColumn();
+        boolean moveDown = move.getTargetRow() > move.getStartingRow();
+
+        if(isMoveDiagonal_isTargetFieldEmpty(move)){
+            if(moveUp){
+                int moveSize = move.getStartingRow() - move.getTargetRow();
+                if (moveLeft){
                     for (int i = 1; i < moveSize ; i++) {
-                        royalMove.add(gameBoard.getField(move.getRowStart()-i, move.getColumnStart()-i));
+                        royalMove.add(gameBoard.getField(move.getStartingRow() -i, move.getStartingColumn() -i));
                     }
-                } else if (move.getColumnEnd() > move.getColumnStart()){
+                } else if (moveRight){
                     for (int i = 1; i < moveSize ; i++) {
-                        royalMove.add(gameBoard.getField(move.getRowStart()-i, move.getColumnStart()+i));
+                        royalMove.add(gameBoard.getField(move.getStartingRow() -i, move.getStartingColumn() +i));
                     }
                 }
-            } else if(move.getRowEnd() > move.getRowStart()){
-                int moveSize = move.getRowEnd() - move.getRowStart();
-                if (move.getColumnEnd() < move.getColumnStart()){
-                    for (int i = 1; i < moveSize ; i++) {
-                        royalMove.add(gameBoard.getField(move.getRowStart()+i, move.getColumnStart()-i));
-                    }
-                } else if (move.getColumnEnd() > move.getColumnStart()){
-                    for (int i = 1; i < moveSize ; i++) {
-                        royalMove.add(gameBoard.getField(move.getRowStart()+i, move.getColumnStart()+i));
+            } else {
+                if(moveDown){
+                    int moveSize = move.getTargetRow() - move.getStartingRow();
+                    if (moveLeft){
+                        for (int i = 1; i < moveSize ; i++) {
+                            royalMove.add(gameBoard.getField(move.getStartingRow() +i, move.getStartingColumn() -i));
+                        }
+                    } else if (moveRight){
+                        for (int i = 1; i < moveSize ; i++) {
+                            royalMove.add(gameBoard.getField(move.getStartingRow() +i, move.getStartingColumn() +i));
+                        }
                     }
                 }
             }
+
             int numberOfRed = Collections.frequency(royalMove, Color.R);
             int numberOfRedK = Collections.frequency(royalMove, Color.Rk);
             int numberOfWhite = Collections.frequency(royalMove, Color.W);
             int numberOfWhiteK = Collections.frequency(royalMove, Color.Wk);
+            int overallRedPawns = numberOfRed + numberOfRedK;
+            int overallWhitePawns = numberOfWhite + numberOfWhiteK;
 
             if(move.getPawn().equals(Color.Rk)){
-                if(numberOfRed+numberOfRedK == 0 && numberOfWhite+numberOfWhiteK < 2){
+                if(overallRedPawns == 0 && overallWhitePawns < 2){
                     int index = -1;
                     if(numberOfWhite == 1){
                         index = royalMove.indexOf(Color.W);
@@ -123,11 +144,11 @@ public class GameController {
                         index = royalMove.indexOf(Color.Wk);
                     }
                     kingDestroysFilthyPeasants(move, index);
-                    gameBoard.setField(move.getRowStart(), move.getColumnStart(), Color.o);
-                    gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), move.getPawn());
+                    gameBoard.setField(move.getStartingRow(), move.getStartingColumn(), EMPTY);
+                    gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), move.getPawn());
                 }
             } else if(move.getPawn().equals(Color.Wk)){
-                if(numberOfRed+numberOfRedK < 2 && numberOfWhite+numberOfWhiteK == 0){
+                if(overallRedPawns < 2 && overallWhitePawns == 0){
                     int index = -1;
                     if(numberOfRed == 1){
                         index = royalMove.indexOf(Color.R);
@@ -135,27 +156,37 @@ public class GameController {
                         index = royalMove.indexOf(Color.Rk);
                     }
                     kingDestroysFilthyPeasants(move, index);
-                    gameBoard.setField(move.getRowStart(), move.getColumnStart(), Color.o);
-                    gameBoard.setField(move.getRowEnd(), move.getColumnEnd(), move.getPawn());
+                    gameBoard.setField(move.getStartingRow(), move.getStartingColumn(), EMPTY);
+                    gameBoard.setField(move.getTargetRow(), move.getTargetColumn(), move.getPawn());
                 }
             }
         }
     }
 
+    private boolean isMoveDiagonal_isTargetFieldEmpty(Move move) {
+        return gameBoard.getField(move.getTargetRow(), move.getTargetColumn()).equals(EMPTY) &&
+                Math.abs(move.getStartingRow()-move.getTargetRow()) == Math.abs(move.getStartingColumn()-move.getTargetColumn());
+    }
+
     private void kingDestroysFilthyPeasants(Move move, int index) {
-        if (move.getRowEnd() < move.getRowStart()){
-            if (move.getColumnEnd() < move.getColumnStart()){
-                gameBoard.setField(move.getRowStart() -index-1, move.getColumnStart() -index-1, Color.o);
+        boolean moveUp = move.getTargetRow() < move.getStartingRow();
+        boolean moveLeft = move.getTargetColumn() < move.getStartingColumn();
+        boolean moveRight = move.getTargetColumn() > move.getStartingColumn();
+        boolean moveDown = move.getTargetRow() > move.getStartingRow();
+
+        if (moveUp){
+            if (moveLeft){
+                gameBoard.setField(move.getStartingRow() -index-1, move.getStartingColumn() -index-1, EMPTY);
             }
-            else if (move.getColumnEnd() > move.getColumnStart()){
-                gameBoard.setField(move.getRowStart() -index-1, move.getColumnStart() +index+1, Color.o);
+            else if (moveRight){
+                gameBoard.setField(move.getStartingRow() -index-1, move.getStartingColumn() +index+1, EMPTY);
             }
-        } else if (move.getRowEnd() > move.getRowStart()){
-            if (move.getColumnEnd() < move.getColumnStart()){
-                gameBoard.setField(move.getRowStart() +index+1, move.getColumnStart() -index-1, Color.o);
+        } else if (moveDown){
+            if (moveLeft){
+                gameBoard.setField(move.getStartingRow() +index+1, move.getStartingColumn() -index-1, EMPTY);
             }
-            else if (move.getColumnEnd() > move.getColumnStart()){
-                gameBoard.setField(move.getRowStart() +index+1, move.getColumnStart() +index+1, Color.o);
+            else if (moveRight){
+                gameBoard.setField(move.getStartingRow() +index+1, move.getStartingColumn() +index+1, EMPTY);
             }
         }
     }
