@@ -1,24 +1,15 @@
 package com.github.sebastiancegielka.checkers.model;
 
-import java.util.Arrays;
-
 public class Board {
     private static final int SIZE = 8;
     private Color[][] board = new Color[SIZE][SIZE];
 
-    public static int getSIZE() {
-        return SIZE;
-    }
-
-    public void generateTestBoard() {
+    public void generateEmptyBoard() {
         for (int m = 0; m < SIZE ; m++) {
             for (int n = 0; n < SIZE; n++) {
                 board[m][n] = Color.o;
             }
         }
-        board[0][2] = Color.Rk;
-        board[2][4] = Color.W;
-        board[3][5] = Color.W;
     }
 
     public void generateNewBoard() {

@@ -1,83 +1,112 @@
 package com.github.sebastiancegielka.checkers.model;
 
 public class Move {
-    private int rowStart;
-    private int columnStart;
-    private int rowEnd;
-    private int columnEnd;
+    private int startingRow;
+    private int startingColumn;
+    private int targetRow;
+    private int targetColumn;
     private Color pawn;
 
-    public Move() {
-    }
-
-    private Move(int rowStart, int columnStart, int rowEnd, int columnEnd, Color pawn) {
-        this.rowStart = rowStart;
-        this.columnStart = columnStart;
-        this.rowEnd = rowEnd;
-        this.columnEnd = columnEnd;
+    private Move(int startingRow, int startingColumn, int targetRow, int targetColumn, Color pawn) {
+        this.startingRow = startingRow;
+        this.startingColumn = startingColumn;
+        this.targetRow = targetRow;
+        this.targetColumn = targetColumn;
         this.pawn = pawn;
     }
 
     public int getStartingRow() {
-        return rowStart;
+        return startingRow;
     }
 
     public int getStartingColumn() {
-        return columnStart;
+        return startingColumn;
     }
 
     public int getTargetRow() {
-        return rowEnd;
+        return targetRow;
     }
 
     public int getTargetColumn() {
-        return columnEnd;
+        return targetColumn;
     }
 
     public Color getPawn() {
         return pawn;
     }
 
-    public static class Builder{
-        private int rowStart;
-        private int columnStart;
-        private int rowEnd;
-        private int columnEnd;
+    public static class Builder implements NeedPawnColor, NeedStartingRow, NeedStartingColumn, NeedTargetRow, NeedTargetColumn, CanBeBuild {
+        private int startingRow;
+        private int startingColumn;
+        private int targetRow;
+        private int targetColumn;
         private Color pawn;
 
-        private Builder(){}
+        private Builder() {
+        }
 
-        public static Builder create(){
+        public static NeedPawnColor create() {
             return new Builder();
         }
 
-        public Builder withStartRow(int rowStart){
-            this.rowStart = rowStart;
-            return this;
-        }
-
-        public Builder withStartColumn(int columnStart){
-            this.columnStart = columnStart;
-            return this;
-        }
-
-        public Builder withEndRow(int rowEnd){
-            this.rowEnd = rowEnd;
-            return this;
-        }
-
-        public Builder withColumnEnd(int columnEnd){
-            this.columnEnd = columnEnd;
-            return this;
-        }
-
-        public Builder withPawnColor(Color pawn){
+        @Override
+        public Builder withPawnColor(Color pawn) {
             this.pawn = pawn;
             return this;
         }
 
-        public Move build(){
-            return new Move(rowStart, columnStart, rowEnd, columnEnd, pawn);
+        @Override
+        public Builder withStartingRow(int rowStart) {
+            this.startingRow = rowStart;
+            return this;
+        }
+
+        @Override
+        public Builder withStartingColumn(int columnStart) {
+            this.startingColumn = columnStart;
+            return this;
+        }
+
+        @Override
+        public Builder withTargetRow(int rowEnd) {
+            this.targetRow = rowEnd;
+            return this;
+        }
+
+        @Override
+        public Builder withTargetColumn(int columnEnd) {
+            this.targetColumn = columnEnd;
+            return this;
+        }
+
+        @Override
+        public Move build() {
+            return new Move(startingRow, startingColumn, targetRow, targetColumn, pawn);
         }
     }
+
+    public interface NeedPawnColor {
+        NeedStartingRow withPawnColor(Color pawn);
+    }
+
+    public interface NeedStartingRow {
+        NeedStartingColumn withStartingRow(int rowStart);
+    }
+
+    public interface NeedStartingColumn {
+        NeedTargetRow withStartingColumn(int columnStart);
+    }
+
+    public interface NeedTargetRow {
+        NeedTargetColumn withTargetRow(int rowEnd);
+    }
+
+    public interface NeedTargetColumn {
+        CanBeBuild withTargetColumn(int columnEnd);
+    }
+
+    public interface CanBeBuild {
+        Move build();
+    }
 }
+

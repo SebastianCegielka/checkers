@@ -13,7 +13,7 @@ public class ConsoleView {
     private GameController controller;
     private TextTerminal terminal = textIO.getTextTerminal();
 
-    public ConsoleView(GameController controller){
+    public ConsoleView(GameController controller) {
         this.controller = controller;
     }
 
@@ -50,20 +50,28 @@ public class ConsoleView {
                 .read("Enter target column:");
 
         return Move.Builder.create()
-                .withStartRow(rowStart)
-                .withStartColumn(columnStart)
-                .withEndRow(rowEnd)
-                .withColumnEnd(columnEnd)
                 .withPawnColor(pawn)
+                .withStartingRow(rowStart)
+                .withStartingColumn(columnStart)
+                .withTargetRow(rowEnd)
+                .withTargetColumn(columnEnd)
                 .build();
     }
 
-    public void run(){
+    public void run() {
         controller.gameInit();
-        printBoard();
-        while(true){
-            controller.move(getMove());
+        while (controller.allOpponentsPawnsCaptured()) {
+            terminal.setBookmark("Start");
             printBoard();
+            controller.move(getMove());
+            terminal.resetToBookmark("Start");
         }
+        if (controller.getWhitePawnsRemaining() == 0) {
+            terminal.println("Red player won");
+        }
+        if (controller.getRedPawnsRemaining() == 0) {
+            terminal.println("White player won");
+        }
+        terminal.dispose();
     }
 }
